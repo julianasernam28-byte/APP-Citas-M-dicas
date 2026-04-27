@@ -1,2 +1,427 @@
 # APP-Citas-M-dicas
 App para pedir citas medicas
+[citas-medicas.html](https://github.com/user-attachments/files/27142122/citas-medicas.html)
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Citas Médicas</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #d8ddf0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .phone-frame {
+    width: 340px;
+    background: #eef0f8;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    min-height: 640px;
+    position: relative;
+  }
+  .screen { display: none; flex-direction: column; min-height: 640px; }
+  .screen.active { display: flex; }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 18px 6px; font-size: 12px; font-weight: 600;
+    color: #fff; background: #4B44CC;
+  }
+
+  /* ===== SCREEN 1: HOME ===== */
+  .home-header {
+    background: #4B44CC;
+    padding: 12px 18px 30px;
+    border-radius: 0 0 28px 28px;
+  }
+  .welcome-row { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #7B74E8; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; font-weight: 700; color: #fff;
+  }
+  .hi { font-size: 11px; color: #C5C1F0; letter-spacing: 0.5px; }
+  .name { font-size: 15px; font-weight: 600; color: #fff; }
+
+  .specialists-section { padding: 18px 18px 0; flex: 1; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-header h2 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+  .ver-mas-btn {
+    background: #fff; border: 1.5px solid #ddd; border-radius: 14px;
+    padding: 5px 12px; font-size: 12px; cursor: pointer; color: #333; font-weight: 500;
+  }
+  .ver-mas-btn:hover { border-color: #4B44CC; color: #4B44CC; }
+
+  .specialists-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .spec-card {
+    background: #fff; border: 1.5px solid #e8e8f0; border-radius: 14px;
+    padding: 12px 6px; display: flex; flex-direction: column; align-items: center;
+    gap: 6px; cursor: pointer; transition: all 0.15s;
+    font-size: 11px; color: #666; text-align: center; font-weight: 500;
+  }
+  .spec-card:hover { border-color: #4B44CC; color: #4B44CC; background: #f5f4ff; transform: scale(1.03); }
+  .spec-card.selected { background: #EEEDFE; border-color: #4B44CC; color: #4B44CC; }
+  .spec-icon { font-size: 24px; }
+
+  .search-bar {
+    margin: 18px 18px 0;
+    background: #fff; border: 1.5px solid #dde; border-radius: 14px;
+    padding: 11px 14px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: #aaa;
+  }
+  .search-bar input {
+    border: none; outline: none; background: transparent;
+    font-size: 13px; flex: 1; color: #333;
+  }
+  .search-go-btn {
+    background: #4B44CC; color: #fff; border: none;
+    border-radius: 10px; padding: 6px 12px; cursor: pointer;
+    font-size: 15px; transition: opacity 0.15s;
+  }
+  .search-go-btn:hover { opacity: 0.85; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    display: flex; justify-content: space-around;
+    padding: 12px 0 18px;
+    border-top: 1px solid #e0e0ea;
+    background: #fff;
+    margin-top: auto;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; cursor: pointer; color: #aaa;
+    padding: 4px 18px; border-radius: 10px; transition: color 0.15s;
+  }
+  .nav-item.active { color: #4B44CC; }
+  .nav-item:hover { color: #4B44CC; }
+  .nav-icon { font-size: 20px; }
+
+  /* ===== SCREEN 2: CALENDAR ===== */
+  .cal-header-bar {
+    background: #eef0f8; padding: 14px 16px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .back-btn {
+    background: #fff; border: 1.5px solid #dde; border-radius: 10px;
+    padding: 6px 10px; cursor: pointer; font-size: 16px; color: #555;
+  }
+  .spec-label {
+    flex: 1; background: #fff; border: 1.5px solid #dde;
+    border-radius: 10px; padding: 8px 12px;
+    font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    color: #888; display: flex; align-items: center; justify-content: space-between;
+  }
+  .search-icon-btn {
+    background: #fff; border: 1.5px solid #dde;
+    border-radius: 10px; padding: 8px 10px; cursor: pointer; font-size: 15px;
+  }
+  .cal-title { text-align: center; font-size: 19px; font-weight: 700; padding: 12px 0 8px; color: #1a1a2e; }
+
+  .calendar-box {
+    margin: 0 16px;
+    background: #fff; border: 1.5px solid #e0e0ea; border-radius: 16px; overflow: hidden;
+  }
+  .cal-month-header {
+    display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;
+  }
+  .cal-year {
+    background: #4B44CC; color: #fff; border-radius: 8px;
+    padding: 4px 12px; font-size: 13px; font-weight: 700;
+  }
+  .cal-month-name { font-size: 14px; font-weight: 600; color: #666; }
+  .cal-nav {
+    background: none; border: 1.5px solid #dde; border-radius: 8px;
+    padding: 4px 10px; cursor: pointer; font-size: 16px; color: #555;
+  }
+  .cal-nav:hover { border-color: #4B44CC; color: #4B44CC; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; padding: 0 6px 10px; }
+  .cal-day-header { font-size: 10px; font-weight: 700; color: #aaa; padding: 4px 0; }
+  .cal-day {
+    font-size: 12px; padding: 6px 2px; cursor: pointer;
+    margin: 2px auto; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; color: #333; transition: all 0.12s;
+  }
+  .cal-day:hover:not(.empty):not(.disabled) { background: #EEEDFE; color: #4B44CC; }
+  .cal-day.selected { background: #4B44CC; color: #fff !important; }
+  .cal-day.disabled { color: #ccc; cursor: default; }
+  .cal-day.empty { cursor: default; }
+
+  .confirm-section { padding: 16px 18px; }
+  .confirm-section h3 { font-size: 15px; font-weight: 700; text-align: center; color: #1a1a2e; margin-bottom: 4px; }
+  .date-label { font-size: 12px; color: #999; text-align: center; margin-bottom: 14px; min-height: 18px; }
+  .confirm-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 2.5px dashed #4B44CC; background: transparent;
+    font-size: 26px; cursor: pointer; margin: 0 auto;
+    color: #4B44CC; transition: background 0.15s;
+  }
+  .confirm-btn:hover { background: #EEEDFE; }
+
+  /* ===== SCREEN 3: DETAILS ===== */
+  .screen-details { background: #eef0f8; }
+  .details-title {
+    font-size: 24px; font-weight: 900; color: #4B44CC;
+    padding: 24px 20px 18px; letter-spacing: 1px;
+  }
+  .details-card {
+    background: #fff; margin: 0 18px; border-radius: 18px;
+    padding: 22px 20px; border: 1.5px solid #e0e0ea;
+  }
+  .detail-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .detail-row:last-child { margin-bottom: 0; }
+  .detail-icon { font-size: 28px; width: 38px; text-align: center; }
+  .detail-text { font-size: 15px; font-weight: 500; color: #1a1a2e; }
+
+  .action-section { padding: 22px 18px; }
+  .action-question { font-size: 11px; color: #999; text-align: center; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-confirmar {
+    background: #C5DECB; color: #2D6B3A; border: none; border-radius: 12px;
+    padding: 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.15s;
+  }
+  .btn-confirmar:hover { opacity: 0.85; }
+  .btn-cancelar {
+    background: #8A8A8A; color: #fff; border: none; border-radius: 12px;
+    padding: 16px; font-size: 13px; font-weight: 700; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.15s;
+  }
+  .btn-cancelar:hover { opacity: 0.85; }
+  .whatsapp-note { font-size: 10px; color: #bbb; text-align: center; margin-top: 14px; letter-spacing: 0.3px; text-transform: uppercase; line-height: 1.5; }
+
+  /* ===== SCREEN 4: SUCCESS ===== */
+  .screen-success { background: #eef0f8; }
+  .success-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 24px; text-align: center; }
+  .success-icon { font-size: 72px; margin-bottom: 16px; }
+  .success-title { font-size: 22px; font-weight: 800; color: #2D6B3A; margin-bottom: 8px; }
+  .success-subtitle { font-size: 14px; color: #888; margin-bottom: 24px; }
+  .success-card {
+    background: #fff; border-radius: 16px; padding: 18px 20px;
+    border: 1.5px solid #e0e0ea; width: 100%; margin-bottom: 22px; text-align: left;
+  }
+  .success-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 13px; color: #333; }
+  .success-row:last-child { margin-bottom: 0; }
+  .back-home-btn {
+    background: #4B44CC; color: #fff; border: none; border-radius: 14px;
+    padding: 14px 32px; font-size: 14px; font-weight: 700;
+    cursor: pointer; width: 100%; transition: opacity 0.15s;
+  }
+  .back-home-btn:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+
+  <!-- SCREEN 1: HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="status-bar"><span>07:00</span><span>📶</span></div>
+    <div class="home-header">
+      <div class="welcome-row">
+        <div class="avatar">M</div>
+        <div>
+          <div class="hi">BIENVENIDA</div>
+          <div class="name">Martha Benítez</div>
+        </div>
+      </div>
+    </div>
+    <div class="specialists-section">
+      <div class="section-header">
+        <h2>Especialistas</h2>
+        <button class="ver-mas-btn">ver más</button>
+      </div>
+      <div class="specialists-grid">
+        <div class="spec-card" onclick="selectSpec(this,'MEDICINA GENERAL')"><div class="spec-icon">🩺</div>Medicina General</div>
+        <div class="spec-card" onclick="selectSpec(this,'CARDIOLOGÍA')"><div class="spec-icon">❤️</div>Cardiología</div>
+        <div class="spec-card" onclick="selectSpec(this,'NEUROLOGÍA')"><div class="spec-icon">🧠</div>Neurología</div>
+        <div class="spec-card" onclick="selectSpec(this,'ORTOPEDIA')"><div class="spec-icon">🦴</div>Ortopedia</div>
+        <div class="spec-card" onclick="selectSpec(this,'DERMATOLOGÍA')"><div class="spec-icon">✨</div>Dermatología</div>
+        <div class="spec-card" onclick="selectSpec(this,'UROLOGÍA')"><div class="spec-icon">💊</div>Urología</div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <span>📅</span>
+      <input placeholder="Búsqueda citas médicas" />
+      <button class="search-go-btn" onclick="goToCalendar()">🔍</button>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><div class="nav-icon">🏠</div>Home</div>
+      <div class="nav-item" onclick="goToCalendar()"><div class="nav-icon">📅</div>Mis citas</div>
+      <div class="nav-item"><div class="nav-icon">👤</div>Mi perfil</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: CALENDAR -->
+  <div id="screen-calendar" class="screen">
+    <div class="cal-header-bar">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <div class="spec-label"><span id="cal-spec-label">DERMATOLOGÍA</span><span>📅</span></div>
+      <button class="search-icon-btn">🔍</button>
+    </div>
+    <div class="cal-title">Fechas disponibles</div>
+    <div class="calendar-box">
+      <div class="cal-month-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span class="cal-year" id="cal-year">2026</span>
+          <span class="cal-month-name" id="cal-month">APRIL</span>
+        </div>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-header">SUN</div><div class="cal-day-header">MON</div>
+        <div class="cal-day-header">TUE</div><div class="cal-day-header">WED</div>
+        <div class="cal-day-header">THU</div><div class="cal-day-header">FRI</div>
+        <div class="cal-day-header">SAT</div>
+        <div id="cal-days" style="display:contents;"></div>
+      </div>
+    </div>
+    <div class="confirm-section">
+      <h3>¿Desea agendar la fecha seleccionada?</h3>
+      <div class="date-label" id="selected-date-label">Seleccione una fecha</div>
+      <button class="confirm-btn" onclick="goToDetails()">✔</button>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('home')"><div class="nav-icon">🏠</div>Home</div>
+      <div class="nav-item active"><div class="nav-icon">📅</div>Mis citas</div>
+      <div class="nav-item"><div class="nav-icon">👤</div>Mi perfil</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: DETAILS -->
+  <div id="screen-details" class="screen screen-details">
+    <div class="details-title">DATOS DE LA CITA</div>
+    <div class="details-card">
+      <div class="detail-row"><div class="detail-icon">📋</div><div class="detail-text" id="detail-date">16 de abril - 9:00am</div></div>
+      <div class="detail-row"><div class="detail-icon">📍</div><div class="detail-text">Nueva EPS - Envigado</div></div>
+      <div class="detail-row"><div class="detail-icon">👩‍⚕️</div><div class="detail-text">Dr. Carlos Medina</div></div>
+    </div>
+    <div class="action-section">
+      <div class="action-question">¿Desea confirmar o cancelar la cita?</div>
+      <div class="action-btns">
+        <button class="btn-confirmar" onclick="confirmAppt()">CONFIRMAR</button>
+        <button class="btn-cancelar" onclick="showScreen('home')">CANCELAR</button>
+      </div>
+      <div class="whatsapp-note">Se le enviará via WhatsApp<br>un recordatorio de su cita</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('home')"><div class="nav-icon">🏠</div>Home</div>
+      <div class="nav-item active"><div class="nav-icon">📅</div>Mis citas</div>
+      <div class="nav-item"><div class="nav-icon">👤</div>Mi perfil</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: SUCCESS -->
+  <div id="screen-success" class="screen screen-success">
+    <div class="success-inner">
+      <div class="success-icon">✅</div>
+      <div class="success-title">¡Cita confirmada!</div>
+      <div class="success-subtitle">Se enviará un recordatorio por WhatsApp</div>
+      <div class="success-card">
+        <div class="success-row"><span>📋</span><span id="success-date">16 de abril - 9:00am</span></div>
+        <div class="success-row"><span>📍</span><span>Nueva EPS - Envigado</span></div>
+        <div class="success-row"><span>👩‍⚕️</span><span>Dr. Carlos Medina</span></div>
+      </div>
+      <button class="back-home-btn" onclick="showScreen('home')">Volver al inicio</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  const MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  let currentYear = 2026, currentMonth = 3, selectedDay = null, selectedSpec = 'DERMATOLOGÍA';
+
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+  }
+
+  function selectSpec(el, name) {
+    document.querySelectorAll('.spec-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSpec = name;
+  }
+
+  function goToCalendar() {
+    document.getElementById('cal-spec-label').textContent = selectedSpec;
+    renderCalendar();
+    showScreen('calendar');
+  }
+
+  function renderCalendar() {
+    document.getElementById('cal-year').textContent = currentYear;
+    document.getElementById('cal-month').textContent = MONTHS[currentMonth];
+    const container = document.getElementById('cal-days');
+    container.innerHTML = '';
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const today = new Date();
+    for (let i = 0; i < firstDay; i++) {
+      const e = document.createElement('div'); e.className = 'cal-day empty'; container.appendChild(e);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      el.textContent = d;
+      const dow = new Date(currentYear, currentMonth, d).getDay();
+      const isPast = (currentYear === today.getFullYear() && currentMonth === today.getMonth() && d < today.getDate());
+      if (isPast || dow === 0) { el.classList.add('disabled'); }
+      else {
+        if (d === selectedDay) el.classList.add('selected');
+        el.onclick = () => selectDay(d);
+      }
+      container.appendChild(el);
+    }
+  }
+
+  function selectDay(d) {
+    selectedDay = d;
+    document.querySelectorAll('.cal-day').forEach(el => {
+      el.classList.remove('selected');
+      if (parseInt(el.textContent) === d && !el.classList.contains('empty') && !el.classList.contains('disabled')) el.classList.add('selected');
+    });
+    document.getElementById('selected-date-label').style.color = '#999';
+    document.getElementById('selected-date-label').textContent = d + ' de ' + MONTHS_ES[currentMonth] + ' del ' + currentYear + ' - 9:00am';
+  }
+
+  function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    selectedDay = null;
+    document.getElementById('selected-date-label').textContent = 'Seleccione una fecha';
+    renderCalendar();
+  }
+
+  function goToDetails() {
+    if (!selectedDay) {
+      const lbl = document.getElementById('selected-date-label');
+      lbl.style.color = '#E24B4A'; lbl.textContent = 'Seleccione una fecha primero'; return;
+    }
+    document.getElementById('detail-date').textContent = selectedDay + ' de ' + MONTHS_ES[currentMonth] + ' - 9:00am';
+    showScreen('details');
+  }
+
+  function confirmAppt() {
+    document.getElementById('success-date').textContent = selectedDay + ' de ' + MONTHS_ES[currentMonth] + ' - 9:00am';
+    showScreen('success');
+  }
+
+  renderCalendar();
+</script>
+</body>
+</html>
